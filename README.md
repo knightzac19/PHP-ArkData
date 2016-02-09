@@ -1,10 +1,10 @@
 # PHP ARK Server Data Reader
 
-This is a port of <a href="https://github.com/AuthiQ/ArkData">AuthiQ's ARK Server Data Reader</a> into PHP. It's 100% ported without anything left out and I have even fixed the 100 user limit for steam profiles.
+This is a port of <a href="https://github.com/AuthiQ/ArkData">AuthiQ's ARK Server Data Reader</a> into PHP. It's 100% ported without anything left out and I have even fixed the 100 user limit for steam profiles. I also have imported <a href="https://github.com/xPaw/PHP-Source-Query/">xPaw's PHP-Source-Query</a> as that is the main backend of the project. Please visit the repo to make sure your PHP environment is setup properly. 
 
 <h3>How to use it</h3>
 
-If you use codeigniter then you need to use the ssq.php file that is included. If you aren't using codeigniter, just include SourceQuery/bootstrap.php in your source.
+If you use codeigniter then you need to use the ssq.php file that is included.
 ```PHP
 $this->load->library("ssq");
 $this->load->library("arkdata",array("installLocation"=>"DIRECT LOCATION TO STEAM FILES"));
