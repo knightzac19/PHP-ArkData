@@ -29,8 +29,8 @@ $arkdataresults = $arkdata->getArkData();
   <li>SCP Support for Remote Linux Servers
       <ul>
         <li>This will require the user setting up approved keys between servers</li>
-        <li>Downsides to this is that SCP can be very slow<li>
-        <li>I might create a script to zip a file for the server to download with all the profiles.<li>
+        <li>Downsides to this is that SCP can be very slow</li>
+        <li>I might create a script to zip a file for the server to download with all the profiles.</li>
       </ul>
   </li>
   <li>Possibly NFS Share Support</li>
