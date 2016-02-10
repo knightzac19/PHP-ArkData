@@ -25,20 +25,12 @@ $arkdataresults = $arkdata->getArkData();
 
 <h2>Upcoming Features</h3>
 
-<ul>
-  <li>SCP Support for Remote Linux Servers
-      <ul>
-        <li>This will require the user setting up approved keys between servers</li>
-        <li>Downsides to this is that SCP can be very slow</li>
-        <li>I might create a script to zip a file for the server to download with all the profiles.</li>
-      </ul>
-  </li>
-  <li>Possibly NFS Share Support</li>
-  <li>Windows Network Share (Might actually work if mounted already)</li>
-  <li>Multiple Async thread support
-      <ul>
-        <li>This will require PHP pthread. It is available for both windows and linux</li>
-        <li>Probably will take some time to determine how I want to implement this.</li>
-      </ul>
-  </li>
-</ul>
+* ~~SCP/SSH Support for Remote Linux Servers~~  **Done**
+  * ~~This will require the user setting up approved keys between servers~~
+  * ~~Downsides to this is that SCP can be very slow~~
+  * ~~I might create a script to zip a file for the server to download with all the profiles.~~
+* Possibly NFS Share Support
+* Windows Network Share (Might actually work if mounted already)
+* Multiple Async thread support
+  * This will require PHP pthread. It is available for both windows and linux
+  * Probably will take some time to determine how I want to implement this.
