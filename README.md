@@ -2,6 +2,8 @@
 
 This is a port of <a href="https://github.com/AuthiQ/ArkData">AuthiQ's ARK Server Data Reader</a> into PHP. It's 100% ported without anything left out and I have even fixed the 100 user limit for steam profiles. I also have imported <a href="https://github.com/xPaw/PHP-Source-Query/">xPaw's PHP-Source-Query</a> as that is the main backend of the project. Please visit the repo to make sure your PHP environment is setup properly.
 
+
+
 ## How to use it
 
 If you use codeigniter then you need to use the ssq.php file that is included.
@@ -23,7 +25,10 @@ $arkdata->LoadOnlinePlayers();
 $arkdataresults = $arkdata->getArkData();
 ```
 
-## Enabling SSH
+## Enabling SSH (Beta)
+
+**Note: I take no responsibility if you somehow end up deleting your entire ark folder with this or something worse. Please TRIPLE check your cache directory before you run the script. It is set to delete everything in that folder on startup. YOU HAVE BEEN WARNED**
+
 
 If you want to enable SSH you must have php_ssh2 installed and you have to have PHP 5.5+ or at least have ZipArchive support in your PHP installation. On the server that hosts ARK, you must have the zip application installed. Please run **which zip** and make sure it returns something.
 
