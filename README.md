@@ -26,7 +26,8 @@ $arkdataresults = $arkdata->getArkData();
 ## Enabling SSH
 
 If you want to enable SSH you must have php_ssh2 installed and you have to have PHP 5.5+ or at least have ZipArchive support in your PHP installation. On the server that hosts ARK, you must have the zip application installed. Please run **which zip** and make sure it returns something.
-To Enable do add the following to the array for the class:
+
+To Enable SSH do add the following to the array for the class:
 ```PHP
 "enableSSH" => true,
 "SSHSettings" => array("host"=>'<HOST>',
