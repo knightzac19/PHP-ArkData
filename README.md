@@ -1,8 +1,8 @@
 # PHP ARK Server Data Reader
 
-This is a port of <a href="https://github.com/AuthiQ/ArkData">AuthiQ's ARK Server Data Reader</a> into PHP. It's 100% ported without anything left out and I have even fixed the 100 user limit for steam profiles. I also have imported <a href="https://github.com/xPaw/PHP-Source-Query/">xPaw's PHP-Source-Query</a> as that is the main backend of the project. Please visit the repo to make sure your PHP environment is setup properly. 
+This is a port of <a href="https://github.com/AuthiQ/ArkData">AuthiQ's ARK Server Data Reader</a> into PHP. It's 100% ported without anything left out and I have even fixed the 100 user limit for steam profiles. I also have imported <a href="https://github.com/xPaw/PHP-Source-Query/">xPaw's PHP-Source-Query</a> as that is the main backend of the project. Please visit the repo to make sure your PHP environment is setup properly.
 
-<h3>How to use it</h3>
+## How to use it
 
 If you use codeigniter then you need to use the ssq.php file that is included.
 ```PHP
@@ -23,7 +23,32 @@ $arkdata->LoadOnlinePlayers();
 $arkdataresults = $arkdata->getArkData();
 ```
 
-<h2>Upcoming Features</h3>
+## Enabling SSH
+
+If you want to enable SSH you must have php_ssh2 installed and you have to have PHP 5.5+ or at least have ZipArchive support in your PHP installation. On the server that hosts ARK, you must have the zip application installed. Please run **which zip** and make sure it returns something.
+To Enable do add the following to the array for the class:
+```PHP
+"enableSSH" => true,
+"SSHSettings" => array("host"=>'<HOST>',
+                        "port"=> 22,
+                        "known_host"=>"<HOST MD5 HASH>",
+                        "pub_key_location"=>"<FULL PATH TO PUBLIC KEY>",
+                        "priv_key_location"=>"<FULL PATH TO PRIVATE KEY>",
+                        "key_user"=>"<USER KEY IS FOR>",
+                        "cache_dir" => "<FULL PATH ON WEB SERVER FOR CACHE>"
+                        )
+```
+Once you have it enabled and you have your SSH key all setup with your server, you will have to load the library at least once so you can get your host's MD5 HASH. It's not something you can just pull from the server, PHP will md5 it for you and you can put it in the known_host array option. If the key matches after you refresh, you will probably have to wait at least 2-3 minutes depending on the userbase you have and the connection speed between you and the server.
+
+## Known Issues
+
+* Windows
+    * XAMPP Apache with PHP 5.6 will crash if you provide an invalid installLocation for SSH.
+        * Not much I can do about that, it's a known bug.
+* Linux
+    * You might run into issues because I had to hard code command paths. If it becomes an issue, I will put some more checks in to make sure the commands exist.
+
+## Upcoming Features
 
 * ~~SCP/SSH Support for Remote Linux Servers~~  **Done**
   * ~~This will require the user setting up approved keys between servers~~
