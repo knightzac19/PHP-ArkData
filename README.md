@@ -44,7 +44,7 @@ Once you have it enabled and you have your SSH key all setup with your server, y
 ## Known Issues
 
 * Windows
-    * XAMPP Apache with PHP 5.6 will crash if you provide an invalid installLocation for SSH.
+    * XAMPP Apache with PHP 5.6 will crash if you provide an invalid installLocation (affects SSH only).
         * Not much I can do about that, it's a known bug in XAMPP.
 * Linux
     * You might run into issues because I had to hard code command paths. If it becomes an issue, I will put some more checks in to make sure the commands exist.
