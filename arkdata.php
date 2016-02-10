@@ -21,7 +21,7 @@ class Arkdata
        /// Indicates whether the steam user data has been loaded.
        /// </summary>
        private $SteamLoaded;
-       private $DataLoaded;
+    private $DataLoaded;
     private $Timer;
     private $installLocation;
     private $playerFiles;
@@ -29,128 +29,261 @@ class Arkdata
 
     public function __construct($options = array())
     {
+        $enableSSH = false;
         if (count($options) > 0) {
-            $installLocation = $options['installLocation'];
+            $this->installLocation = $options['installLocation'];
+            if (isset($options['enableSSH'])) {
+                $enableSSH = $options['enableSSH'];
+            }
+
+            if ($enableSSH === true) {
+                if (!function_exists('ssh2_connect')) {
+                    die('You must enable php_ssh2 for your PHP installation to use SSH!');
+                }
+            }
         }
-        if (!isset($installLocation)) {
+        if (!isset($this->installLocation)) {
             die('Invalid Settings!');
         }
         $this->Players = array();
         $this->Tribes = array();
         $Rules = array();
-        $playerFiles = glob("$installLocation/*.arkprofile");
-        $tribeFiles = glob("$installLocation/*.arktribe");
-        if (!$playerFiles && !$tribeFiles) {
-            die('Invalid directory detected, no profiles or tribes found!');
-        }
         $this->SteamLoaded = false;
         $this->DataLoaded = false;
-        $Timer = MicroTime(true);
-        foreach ($playerFiles as $key => $value) {
-            $player = new Player();
-            $parse = (object) $player->ParsePlayer($value);
-            if (!$parse->Id) {
-                continue;
+
+        if ($enableSSH === false) {
+            $this->playerFiles = glob("$this->installLocation/*.arkprofile");
+            $this->tribeFiles = glob("$this->installLocation/*.arktribe");
+            if (!$this->playerFiles && !$this->tribeFiles) {
+                die('Invalid directory detected, no profiles or tribes found!');
             }
-            $this->Players[(string) $parse->Id] = $parse;
-        }
-        foreach ($tribeFiles as $key => $value) {
-            $tribe = new Tribe();
-            $parse = $tribe->ParseTribe($value);
-            if (!$parse->Id) {
-                continue;
+            foreach ($this->playerFiles as $key => $value) {
+                $player = new Player();
+                $parse = (object) $player->ParsePlayer($value);
+                if (!$parse->Id) {
+                    continue;
+                }
+                $this->Players[(string) $parse->Id] = $parse;
             }
-            $this->Tribes[$parse->Id] = $parse;
+            foreach ($this->tribeFiles as $key => $value) {
+                $tribe = new Tribe();
+                $parse = $tribe->ParseTribe($value);
+                if (!$parse->Id) {
+                    continue;
+                }
+                $this->Tribes[$parse->Id] = $parse;
+            }
+        } else {
+            if ($this->setupSSH(
+                    $options['SSHSettings']['host'],
+                    @$options['SSHSettings']['port'],
+                    $options['SSHSettings']['known_host'],
+                    $options['SSHSettings']['pub_key_location'],
+                    $options['SSHSettings']['priv_key_location'],
+                    $options['SSHSettings']['key_user'],
+                    $options['SSHSettings']['cache_dir'])) {
+                $this->playerFiles = glob($options['SSHSettings']['cache_dir'].'/*.arkprofile');
+                $this->tribeFiles = glob($options['SSHSettings']['cache_dir'].'/*.arktribe');
+                if (!$this->playerFiles && !$this->tribeFiles) {
+                    die('Invalid directory detected, no profiles or tribes found!');
+                }
+                foreach ($this->playerFiles as $key => $value) {
+                    $player = new Player();
+                    $parse = (object) $player->ParsePlayer($value);
+                    if (!$parse->Id) {
+                        continue;
+                    }
+                    $this->Players[(string) $parse->Id] = $parse;
+                }
+                foreach ($this->tribeFiles as $key => $value) {
+                    $tribe = new Tribe();
+                    $parse = $tribe->ParseTribe($value);
+                    if (!$parse->Id) {
+                        continue;
+                    }
+                    $this->Tribes[$parse->Id] = $parse;
+                }
+            } else {
+                die('SSH Failed To Process, please check your logs for any exceptions!');
+            }
         }
 
+        // $this->Timer = MicroTime(true);
+
+
         $this->LinkPlayerTribe();
-        $Timer = Number_Format(MicroTime(true) - $Timer, 4, '.', '');
+        // $this->Timer = MicroTime(true) - $this->Timer;
         // $tribe = new Tribe();
         // $tribe->ParseTribe($installLocation."/1596232110.arktribe");
     }
 
     public function getArkData()
     {
-        if($this->DataLoaded)
-        {
-            return array($this->Players,$this->Tribes);
+        if ($this->DataLoaded) {
+            return array($this->Players,$this->Tribes,$this->Timer);
+        } else {
+            die('Data did not load correctly!');
         }
-        else {
-            die("Data did not load correctly!");
-        }
+    }
 
+    private function setupSSH($host, $port, $known_host, $pub_key_location, $priv_key_location, $key_user, $cache_dir)
+    {
+        if (!is_dir($cache_dir)) {
+            mkdir($cache_dir);
+        } else {
+            $files = array_diff(scandir($cache_dir), array('.', '..'));
+            foreach ($files as $file) {
+                (is_dir("$cache_dir\\$file")) ? delTree("$cache_dir\\$file") : unlink("$cache_dir\\$file");
+            }
+        }
+        if ($port == 0 || empty($port)) {
+            $port = 22;
+        }
+        if (!isset($host) || !isset($known_host) || !isset($pub_key_location) || !isset($priv_key_location) || !isset($key_user)) {
+            throw new Exception('Please make sure to you set all variables for setting up SSH!');
+        } else {
+            $connection = ssh2_connect($host, $port);
+            if (!$connection) {
+                throw new Exception('Failed to connect to the server!');
+            }
+            $fingerprint = ssh2_fingerprint($connection,
+                           SSH2_FINGERPRINT_MD5 | SSH2_FINGERPRINT_HEX);
+            if (empty($known_host) || !isset($known_host)) {
+                die("You haven't set your SSH known host! If this is a new installation, here is your host's MD5: $fingerprint <br>Please use this key in your SSH options.");
+            }
+            if ($fingerprint != $known_host) {
+                throw new Exception('Possible Man-In-The-Middle Attack! Check your known_host setting to make sure the key is correct!');
+
+                return false;
+            }
+            ssh2_auth_pubkey_file($connection, $key_user, $pub_key_location, $priv_key_location);
+            $stream = ssh2_exec($connection, "/usr/bin/rm -rf $this->installLocation/arkdata.zip && /usr/bin/zip -j $this->installLocation/arkdata.zip $this->installLocation/*.arkprofile $this->installLocation/*.arktribe");
+
+            //forces PHP to wait for the zip file to finish before continuing.
+            stream_set_blocking($stream, true);
+            while ($line = fgets($stream)) {
+                flush();
+            }
+
+            $sftp = ssh2_sftp($connection);
+            $remotezipfile = file_get_contents("ssh2.sftp://$sftp$this->installLocation/arkdata.zip");
+            if (!$remotezipfile) {
+                throw new Exception('We failed to get the zip file from the server, please check your installLocation path and try again!');
+
+                return false;
+            }
+            $localzipfile = file_put_contents("$cache_dir\\arkdata.zip", $remotezipfile);
+            if (!$localzipfile) {
+                throw new Exception('We failed to write the zip file out and cannot proceed! Please check your cache_dir path and try again.');
+
+                return false;
+            }
+            $zip = new ZipArchive();
+            $res = $zip->open($cache_dir.'\\arkdata.zip');
+            if ($res === true) {
+                $zip->extractTo($cache_dir);
+                $zip->close();
+            } else {
+                throw new Exception('We failed to extract the zip file, this could be due to a space issue or the file failed to download!');
+
+                return false;
+            }
+
+            return true;
+            // $dirHandle = opendir("ssh2.sftp://$sftp".$this->installLocation);
+            // while (false !== ($file = readdir($dirHandle))) {
+                // if ($file != '.' && $file != '..') {
+                    // if(strstr($file,".arktribe") !== false)
+                    // {
+                    //     $tribe = new Tribe();
+                    //     $parse = $tribe->ParseTribe("ssh2.sftp://$sftp$this->installLocation/$file");
+                    //     if (!$parse->Id) {
+                    //         continue;
+                    //     }
+                    //     $this->Tribes[$parse->Id] = $parse;
+                    // }
+                    // if(strstr($file,".arkprofile") !== false)
+                    // {
+                    //     $player = new Player();
+                    //     $parse = (object) $player->ParsePlayer("ssh2.sftp://$sftp$this->installLocation/$file");
+                    //     if (!$parse->Id) {
+                    //         continue;
+                    //     }
+                    //     $this->Players[(string) $parse->Id] = $parse;
+                    // }
+                // }
+            // }
+        }
     }
 
     public function LoadSteam($apiKey)
     {
+        $this->Timer = MicroTime(true);
         $steamSearchPlayers = $this->Players;
         $chunks = array();
         $builder = '';
         $c = 0;
-        while(list($key,$value) = each($steamSearchPlayers))
-        {
+        while (list($key, $value) = each($steamSearchPlayers)) {
             $builder .= $value->SteamId;
-            if($c == 100)
-            {
+            if ($c == 100) {
                 $chunks[] = $builder;
-                $builder = "";
+                $builder = '';
                 $c = 0;
                 reset($steamSearchPlayers);
-            }
-            else {
-                $c++;
+            } else {
+                ++$c;
                 unset($steamSearchPlayers[$key]);
             }
-            if(end($steamSearchPlayers) != $value)
-            {
-                $builder .= ",";
-            }
-            elseif(end($steamSearchPlayers) == $value)
-            {
+            if (end($steamSearchPlayers) != $value) {
+                $builder .= ',';
+            } elseif (end($steamSearchPlayers) == $value) {
                 $chunks[] = $builder;
-                $builder = "";
+                $builder = '';
                 // $c = 0;
             }
         }
         $presponses = array();
         $bresponses = array();
         foreach ($chunks as $key => $value) {
-            if(empty($value))
-            {
+            if (empty($value)) {
                 continue;
             }
-            $curl = curl_init();
+            // $curl = curl_init();
             $baseUrl = 'https://api.steampowered.com/';
             // var_dump($baseUrl."ISteamUser/GetPlayerSummaries/v0002/?key=$apiKey&steamids=$builder");
             // exit;
-            curl_setopt_array($curl, array(
-                        CURLOPT_RETURNTRANSFER => 1,
-                        CURLOPT_URL => $baseUrl."ISteamUser/GetPlayerSummaries/v0002/?key=$apiKey&steamids=$value",
-                        CURLOPT_SSL_VERIFYPEER => false,
-                    ));
-            $profiles = curl_exec($curl);
-            $presponses = array_merge($presponses,json_decode($profiles)->response->players);
-            if (!$profiles) {
-                die('Error: "'.curl_error($curl).'" - Code: '.curl_errno($curl));
-            }
-            curl_close($curl);
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                        CURLOPT_URL => $baseUrl."ISteamUser/GetPlayerBans/v1/?key=$apiKey&steamids=$value",
-                        CURLOPT_RETURNTRANSFER => 1,
-                        CURLOPT_SSL_VERIFYPEER => false,
-                    ));
-            $bans = curl_exec($curl);
-            $bresponses = array_merge($bresponses,json_decode($bans)->players);
-            if (!$bans) {
-                die('Error: "'.curl_error($curl).'" - Code: '.curl_errno($curl));
-            }
-            curl_close($curl);
+            // curl_setopt_array($curl, array(
+            //             CURLOPT_RETURNTRANSFER => 1,
+            //             CURLOPT_URL => $baseUrl."ISteamUser/GetPlayerSummaries/v0002/?key=$apiKey&steamids=$value",
+            //             CURLOPT_SSL_VERIFYPEER => false,
+            //         ));
+            // $profiles = curl_exec($curl);
+            $profiles = Async::call('file_get_contents', array($baseUrl."ISteamUser/GetPlayerSummaries/v0002/?key=$apiKey&steamids=$value"));
+
+            $presponses = array_merge($presponses, json_decode((string) $profiles)->response->players);
+            // if (!$profiles) {
+            //     die('Error: "'.curl_error($curl).'" - Code: '.curl_errno($curl));
+            // }
+            // curl_close($curl);
+            // $curl = curl_init();
+            // curl_setopt_array($curl, array(
+            //             CURLOPT_URL => $baseUrl."ISteamUser/GetPlayerBans/v1/?key=$apiKey&steamids=$value",
+            //             CURLOPT_RETURNTRANSFER => 1,
+            //             CURLOPT_SSL_VERIFYPEER => false,
+            //         ));
+            // $bans = curl_exec($curl);
+            $bans = Async::call('file_get_contents', array($baseUrl."ISteamUser/GetPlayerBans/v1/?key=$apiKey&steamids=$value"));
+            $bresponses = array_merge($bresponses, json_decode((string) $bans)->players);
+            // if (!$bans) {
+            //     die('Error: "'.curl_error($curl).'" - Code: '.curl_errno($curl));
+            // }
+            // curl_close($curl);
         }
 
         $this->LinkSteamProfiles($presponses);
         $this->LinkSteamBans($bresponses);
         $this->SteamLoaded = true;
+        $this->Timer = Number_Format(MicroTime(true) - $this->Timer, 4, '.', '');
     }
     public function LoadOnlinePlayers()
     {
@@ -183,9 +316,7 @@ class Arkdata
                 }
 
                 foreach ($this->Players as $key => $value) {
-                    if($value->SteamName == $var->Name)
-                    {
-
+                    if ($value->SteamName == $var->Name) {
                         $this->Players[$value->Id]->Online = true;
                     }
                 }
@@ -349,8 +480,8 @@ class Player
             $this->TribeId = false;
         }
         $this->Level = GetUInt16($data, 'CharacterStatusComponent_Extra_CharacterLevel') + 1;
-        $this->FileCreated = date("m/d/y g:ia",filectime($fileName));
-        $this->FileUpdated = date("m/d/y g:ia",filemtime($fileName));
+        $this->FileCreated = date('m/d/y g:ia', filectime($fileName));
+        $this->FileUpdated = date('m/d/y g:ia', filemtime($fileName));
         $this->Online = false;
 
         return $this;
@@ -419,4 +550,51 @@ function GetInt($data, $name)
        $start = $num + strlen('StrProperty') + 13;
 
        return substr($data, $start, $midlength);
+   }
+
+   class Async extends Thread
+   {
+       /**
+     * Provide a passthrough to call_user_func_array.
+     **/
+    public function __construct($method, $params)
+    {
+        $this->method = $method;
+        $this->params = $params;
+        $this->result = null;
+        $this->joined = false;
+    }
+    /**
+     * The smallest thread in the world.
+     **/
+    public function run()
+    {
+        if (($this->result = call_user_func_array($this->method, $this->params))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    /**
+     * Static method to create your threads from functions ...
+     **/
+    public static function call($method, $params)
+    {
+        $thread = new self($method, $params);
+        if ($thread->start()) {
+            return $thread;
+        } /* else throw Nastyness **/
+    }
+    /**
+     * Do whatever, result stored in $this->result, don't try to join twice.
+     **/
+    public function __toString()
+    {
+        if (!$this->joined) {
+            $this->joined = true;
+            $this->join();
+        }
+
+        return $this->result;
+    }
    }
