@@ -3,7 +3,6 @@
 This is a port of <a href="https://github.com/AuthiQ/ArkData">AuthiQ's ARK Server Data Reader</a> into PHP. It's 100% ported without anything left out and I have even fixed the 100 user limit for steam profiles. I also have imported <a href="https://github.com/xPaw/PHP-Source-Query/">xPaw's PHP-Source-Query</a> as that is the main backend of the project. Please visit the repo to make sure your PHP environment is setup properly.
 
 
-
 ## How to use it
 
 If you use codeigniter then you need to use the ssq.php file that is included.
@@ -27,7 +26,7 @@ $arkdataresults = $arkdata->getArkData();
 
 ## Enabling SSH (Beta)
 
-**Note: I take no responsibility if you somehow end up deleting your entire ark folder with this or something worse. Please TRIPLE check your cache directory before you run the script. It is set to delete everything in that folder on startup. YOU HAVE BEEN WARNED**
+**Note: I take no responsibility if you somehow end up corrupting your saves or your web server dies from the stress of too many player files!**
 
 
 If you want to enable SSH you must have php_ssh2 installed and you have to have PHP 5.5+ or at least have ZipArchive support in your PHP installation. On the server that hosts ARK, you must have the zip application installed. Please run **which zip** and make sure it returns something.
@@ -58,20 +57,27 @@ array(
 
 ## Known Issues
 
+* All
+    * Steam will load 400ish profiles in about 4.8s. Not much I can do about that other than look into more Async commands, but it's doing about 100 a second.
+    * SSH is taking on average about 11 seconds to connect,zip,download, and process files.
+        * This might go faster once I implement Async for processing player files.
+    * Warnings/Errors have not been fully implemented so you might get invalid results if you provide bad variables.
 * Windows
     * XAMPP Apache with PHP 5.6 will crash if you provide an invalid installLocation (affects SSH only).
         * Not much I can do about that, it's a known bug in XAMPP.
-* Linux
-    * You might run into issues because I had to hard code command paths. If it becomes an issue, I will put some more checks in to make sure the commands exist.
+* Linux (SSH Server **Not** Client)
+    * You might run into issues with SSH because I had to hard code command paths. If it becomes an issue, I will put some more checks in to make sure the commands exist.
 
 ## Upcoming Features
 
-* ~~SCP/SSH Support for Remote Linux Servers~~  **Done**
-  * ~~This will require the user setting up approved keys between servers~~
-  * ~~Downsides to this is that SCP can be very slow~~
-  * ~~I might create a script to zip a file for the server to download with all the profiles.~~
+* Add more avatar picture sizes
+    * Currently I have the largest one set.
 * Possibly NFS Share Support
 * Windows Network Share (Might actually work if mounted already)
 * Multiple Async thread support
   * This will require PHP pthread. It is available for both windows and linux
   * Probably will take some time to determine how I want to implement this.
+* ~~SCP/SSH Support for Remote Linux Servers~~  **Done**
+* ~~This will require the user setting up approved keys between servers~~
+* ~~Downsides to this is that SCP can be very slow~~
+* ~~I might create a script to zip a file for the server to download with all the profiles.~~
