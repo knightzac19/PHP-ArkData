@@ -22,13 +22,14 @@ class Arkdata
        /// </summary>
        private $SteamLoaded;
     private $DataLoaded;
-    private $Timer;
     private $installLocation;
     private $playerFiles;
     private $tribeFiles;
+    private $Timers;
 
     public function __construct($options = array())
     {
+
         $enableSSH = false;
         if (count($options) > 0) {
             $this->installLocation = $options['installLocation'];
@@ -52,6 +53,7 @@ class Arkdata
         $this->DataLoaded = false;
 
         if ($enableSSH === false) {
+                $this->Timers['App'] = MicroTime(true);
             $this->playerFiles = glob("$this->installLocation/*.arkprofile");
             $this->tribeFiles = glob("$this->installLocation/*.arktribe");
             if (!$this->playerFiles && !$this->tribeFiles) {
@@ -82,6 +84,7 @@ class Arkdata
                     $options['SSHSettings']['priv_key_location'],
                     $options['SSHSettings']['key_user'],
                     $options['SSHSettings']['cache_dir'])) {
+                $this->Timers['App'] = MicroTime(true);
                 $this->playerFiles = glob($options['SSHSettings']['cache_dir'].'/*.arkprofile');
                 $this->tribeFiles = glob($options['SSHSettings']['cache_dir'].'/*.arktribe');
                 if (!$this->playerFiles && !$this->tribeFiles) {
@@ -115,12 +118,13 @@ class Arkdata
         // $this->Timer = MicroTime(true) - $this->Timer;
         // $tribe = new Tribe();
         // $tribe->ParseTribe($installLocation."/1596232110.arktribe");
+        $this->Timers['App'] = Number_Format(MicroTime(true) - $this->Timers['App'], 4, '.', '');
     }
 
     public function getArkData()
     {
         if ($this->DataLoaded) {
-            return array($this->Players,$this->Tribes,$this->Timer);
+            return array($this->Players,$this->Tribes,$this->Timers);
         } else {
             die('Data did not load correctly!');
         }
@@ -128,6 +132,7 @@ class Arkdata
 
     private function setupSSH($host, $port, $known_host, $pub_key_location, $priv_key_location, $key_user, $cache_dir)
     {
+        $this->Timers['SSH'] = MicroTime(true);
         if (!is_dir($cache_dir)) {
             mkdir($cache_dir);
         } else {
@@ -188,60 +193,34 @@ class Arkdata
 
                 return false;
             }
-
+            $this->Timers['SSH'] = Number_Format(MicroTime(true) - $this->Timers['SSH'], 4, '.', '');
             return true;
-            // $dirHandle = opendir("ssh2.sftp://$sftp".$this->installLocation);
-            // while (false !== ($file = readdir($dirHandle))) {
-                // if ($file != '.' && $file != '..') {
-                    // if(strstr($file,".arktribe") !== false)
-                    // {
-                    //     $tribe = new Tribe();
-                    //     $parse = $tribe->ParseTribe("ssh2.sftp://$sftp$this->installLocation/$file");
-                    //     if (!$parse->Id) {
-                    //         continue;
-                    //     }
-                    //     $this->Tribes[$parse->Id] = $parse;
-                    // }
-                    // if(strstr($file,".arkprofile") !== false)
-                    // {
-                    //     $player = new Player();
-                    //     $parse = (object) $player->ParsePlayer("ssh2.sftp://$sftp$this->installLocation/$file");
-                    //     if (!$parse->Id) {
-                    //         continue;
-                    //     }
-                    //     $this->Players[(string) $parse->Id] = $parse;
-                    // }
-                // }
-            // }
         }
     }
 
     public function LoadSteam($apiKey)
     {
-        $this->Timer = MicroTime(true);
-        $steamSearchPlayers = $this->Players;
-        $chunks = array();
+        $this->Timers['Steam'] = MicroTime(true);
+        $steamSearchPlayers = array_chunk($this->Players,100);
+
         $builder = '';
+        $chunks = array();
         $c = 0;
-        while (list($key, $value) = each($steamSearchPlayers)) {
-            $builder .= $value->SteamId;
-            if ($c == 100) {
-                $chunks[] = $builder;
-                $builder = '';
-                $c = 0;
-                reset($steamSearchPlayers);
-            } else {
-                ++$c;
-                unset($steamSearchPlayers[$key]);
+        foreach ($steamSearchPlayers as $key => $value) {
+            foreach ($value as $k => $v) {
+                $builder .= $v->SteamId;
+                if (end($value) != $v) {
+                    $builder .= ',';
+                } elseif (end($value) == $v) {
+                    $chunks[] = $builder;
+                    $builder = '';
+                }
             }
-            if (end($steamSearchPlayers) != $value) {
-                $builder .= ',';
-            } elseif (end($steamSearchPlayers) == $value) {
-                $chunks[] = $builder;
-                $builder = '';
-                // $c = 0;
-            }
+
         }
+
+
+
         $presponses = array();
         $bresponses = array();
         foreach ($chunks as $key => $value) {
@@ -283,7 +262,7 @@ class Arkdata
         $this->LinkSteamProfiles($presponses);
         $this->LinkSteamBans($bresponses);
         $this->SteamLoaded = true;
-        $this->Timer = Number_Format(MicroTime(true) - $this->Timer, 4, '.', '');
+        $this->Timers['Steam'] = Number_Format(MicroTime(true) - $this->Timers['Steam'], 4, '.', '');
     }
     public function LoadOnlinePlayers()
     {
@@ -362,7 +341,7 @@ class Arkdata
                 if ($v->SteamId == $value->steamid) {
                     $this->Players[$v->Id]->SteamName = utf8_encode($value->personaname);
                     $this->Players[$v->Id]->ProfileUrl = utf8_encode($value->profileurl);
-                    $this->Players[$v->Id]->AvatarUrl = utf8_encode($value->avatar);
+                    $this->Players[$v->Id]->AvatarUrl = utf8_encode($value->avatarfull);
                     break;
                 }
             }

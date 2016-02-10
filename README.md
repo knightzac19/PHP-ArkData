@@ -41,6 +41,16 @@ To Enable SSH do add the following items to the array for the arkdata class:
 ```
 Once you have it enabled and you have your SSH key all setup with your server, you will have to load the library at least once so you can get your host's MD5 HASH. It's not something you can just pull from the server, PHP will md5 it for you and you can put it in the known_host array option. If the key matches after you refresh, you will probably have to wait at least 2-3 minutes depending on the userbase you have and the connection speed between you and the server.
 
+## Timers
+Timers are stored in the 3rd array item from the getArkData() function. They will be in an array format as shown below.
+```
+array(
+    'App' => 0.0143,
+    'Steam' => 4.4331,
+    'SSH' => 11.6214 //Only set if enabled...
+    )
+```
+
 ## Known Issues
 
 * Windows
