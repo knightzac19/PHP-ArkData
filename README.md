@@ -72,11 +72,18 @@ array(
 
 * Add more avatar picture sizes
     * Currently I have the largest one set.
-* Possibly NFS Share Support
-* Windows Network Share (Might actually work if mounted already)
+* Cygwin support for remote windows servers. (More or less needs testing, should fit like a glove with current SSH setup)
+  * This will be the easiest way for people to implement the library.
+* Standard FTP Support
+  * The only feasible way to do this is if you can run a script on your server side to update profiles into a zip.
+  * Otherwise just pulling all the files off could be a tad slow. (although FTP supports multi file downloads)
 * Multiple Async thread support
   * This will require PHP pthread. It is available for both windows and linux
   * Probably will take some time to determine how I want to implement this.
+  * I might not continue much with this as using AJAX on the client side might be a better option.
+* Possible Node.js support (Stretch Goal)
+  * This will let a client have realtime updates between the arkdata library and the browser. 
+  * Until this is implemented, I will be implementing smaller functions to the library to support AJAX calls.
 * ~~SCP/SSH Support for Remote Linux Servers~~  **Done**
 * ~~This will require the user setting up approved keys between servers~~
 * ~~Downsides to this is that SCP can be very slow~~
