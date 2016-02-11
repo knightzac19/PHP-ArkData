@@ -18,6 +18,7 @@ $this->load->view('ark',$data);
 To use it on a non-codeigniter instance, you can initialize it like any other class:
 ```PHP
 require_once("SourceQuery/bootstrap.php");
+require_once("arkdata.php");
 $arkdata = new Arkdata(array("installLocation"=>"DIRECT LOCATION TO STEAM FILES"));
 $arkdata->LoadSteam("STEAM API KEY HERE");
 $arkdata->LoadOnlinePlayers();
