@@ -47,9 +47,9 @@ To Enable SSH do add the following items to the array for the arkdata class:
 Once you have it enabled and you have your SSH key all setup with your server, you will have to load the library at least once so you can get your host's MD5 HASH. It's not something you can just pull from the server, PHP will md5 it for you and you can put it in the known_host array option. If the key matches after you refresh, you will probably have to wait at least 2-3 minutes depending on the userbase you have and the connection speed between you and the server.
 
 ###Using Cygwin on Windows
-The library supports using Cygwin out of the box without any extra config needed on the library side, but you just need to make sure your Cygwin SSH server is setup properly.
+All you need to do is make sure your SSH server in Cygwin is setup correctly. The library will treat it like any other SSH server.
 
-Please visit this tutorial page, http://docs.oracle.com/cd/E24628_01/install.121/e22624/preinstall_req_cygwin_ssh.htm#EMBSC281 to learn more on how to setup an SSH server in Cygwin. Disregard any specific things for Oracle on that page. To setup authorized key access to your cygwin server, you can just use the ssh-copy-id command from your web server (Linux can just use the ssh-copy-id command, if you have a windows web server, you can either put Cygwin on that server or just use the other method.) or you can just copy the contents of your public key into your cygwin user's authorized_keys file. (Ex. C:\Cygwin64\home\USER\.ssh\authorized_keys). 
+Please visit this tutorial page, http://docs.oracle.com/cd/E24628_01/install.121/e22624/preinstall_req_cygwin_ssh.htm#EMBSC281 to learn more on how to setup an SSH server in Cygwin. Disregard any specific things for Oracle on that page. To setup authorized key access to your cygwin server, you can just use the ssh-copy-id command from your web server (Linux can just use the ssh-copy-id command, if you have a windows web server, you can either put Cygwin on that server or just use the other method.) or you can just copy the contents of your public key into your cygwin user's authorized_keys file. (Ex. C:\Cygwin64\home\USER\.ssh\authorized_keys).
 
 ## Timers
 Timers are stored in the 3rd array item from the getArkData() function. They will be in an array format as shown below.
