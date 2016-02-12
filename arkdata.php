@@ -171,13 +171,13 @@ class Arkdata
             }
 
             $sftp = ssh2_sftp($connection);
-            $remotezipfile = file_get_contents("ssh2.sftp://$sftp$this->installLocation/arkdata.zip");
+            $remotezipfile = @file_get_contents("ssh2.sftp://$sftp$this->installLocation/arkdata.zip");
             if (!$remotezipfile) {
                 throw new Exception('We failed to get the zip file from the server, please check your installLocation path and try again!');
 
                 return false;
             }
-            $localzipfile = file_put_contents("$cache_dir\\arkdata.zip", $remotezipfile);
+            $localzipfile = @file_put_contents("$cache_dir\\arkdata.zip", $remotezipfile);
             if (!$localzipfile) {
                 throw new Exception('We failed to write the zip file out and cannot proceed! Please check your cache_dir path and try again.');
 
