@@ -49,7 +49,7 @@ Once you have it enabled and you have your SSH key all setup with your server, y
 ###Using Cygwin on Windows
 All you need to do is make sure your SSH server in Cygwin is setup correctly. The library will treat it like any other SSH server.
 
-Please visit this tutorial page, http://docs.oracle.com/cd/E24628_01/install.121/e22624/preinstall_req_cygwin_ssh.htm#EMBSC281 to learn more on how to setup an SSH server in Cygwin. Disregard any specific things for Oracle on that page. To setup authorized key access to your cygwin server, you can just use the ssh-copy-id command from your web server (Linux can just use the ssh-copy-id command, if you have a windows web server, you can either put Cygwin on that server or just use the other method.) or you can just copy the contents of your public key into your cygwin user's authorized_keys file. (Ex. C:\Cygwin64\home\USER\.ssh\authorized_keys).
+Please visit this tutorial page, http://docs.oracle.com/cd/E24628_01/install.121/e22624/preinstall_req_cygwin_ssh.htm#EMBSC281 to learn more on how to setup an SSH server in Cygwin. Disregard any specific things for Oracle on that page. To setup authorized key access to your cygwin server, you can just use the ssh-copy-id command from your web server (Linux can just use the ssh-copy-id command, if you have a windows web server, you can either put Cygwin on that server or just use the other method.) or you can just copy the contents of your public key into your cygwin user's authorized_keys file. (Ex. C:\\Cygwin64\\home\\USER\\.ssh\\authorized_keys).
 
 ## Timers
 Timers are stored in the 3rd array item from the getArkData() function. They will be in an array format as shown below.
