@@ -46,6 +46,11 @@ To Enable SSH do add the following items to the array for the arkdata class:
 ```
 Once you have it enabled and you have your SSH key all setup with your server, you will have to load the library at least once so you can get your host's MD5 HASH. It's not something you can just pull from the server, PHP will md5 it for you and you can put it in the known_host array option. If the key matches after you refresh, you will probably have to wait at least 2-3 minutes depending on the userbase you have and the connection speed between you and the server.
 
+###Using Cygwin on Windows
+The library supports using Cygwin out of the box without any extra config needed on the library side, but you just need to make sure your Cygwin SSH server is setup properly.
+
+Please visit this tutorial page, http://docs.oracle.com/cd/E24628_01/install.121/e22624/preinstall_req_cygwin_ssh.htm#EMBSC281 to learn more on how to setup an SSH server in Cygwin. Disregard any specific things for Oracle on that page. To setup authorized key access to your cygwin server, you can just use the ssh-copy-id command from your web server (Linux can just use the ssh-copy-id command, if you have a windows web server, you can either put Cygwin on that server or just use the other method.) or you can just copy the contents of your public key into your cygwin user's authorized_keys file. (Ex. C:\Cygwin64\home\USER\.ssh\authorized_keys). 
+
 ## Timers
 Timers are stored in the 3rd array item from the getArkData() function. They will be in an array format as shown below.
 ```
@@ -73,8 +78,7 @@ array(
 
 * Add more avatar picture sizes
     * Currently I have the largest one set.
-* Cygwin support for remote windows servers. (More or less needs testing, should fit like a glove with current SSH setup)
-  * This will be the easiest way for people to implement the library.
+
 * Standard FTP Support
   * The only feasible way to do this is if you can run a script on your server side to update profiles into a zip.
   * Otherwise just pulling all the files off could be a tad slow. (although FTP supports multi file downloads)
@@ -83,8 +87,10 @@ array(
   * Probably will take some time to determine how I want to implement this.
   * I might not continue much with this as using AJAX on the client side might be a better option.
 * Possible Node.js support (Stretch Goal)
-  * This will let a client have realtime updates between the arkdata library and the browser. 
+  * This will let a client have realtime updates between the arkdata library and the browser.
   * Until this is implemented, I will be implementing smaller functions to the library to support AJAX calls.
+* ~~Cygwin support for remote windows servers. (More or less needs testing, should fit like a glove with current SSH setup)~~ **Done**
+    * ~~This will be the easiest way for people to implement the library.~~
 * ~~SCP/SSH Support for Remote Linux Servers~~  **Done**
 * ~~This will require the user setting up approved keys between servers~~
 * ~~Downsides to this is that SCP can be very slow~~
