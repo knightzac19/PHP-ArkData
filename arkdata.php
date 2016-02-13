@@ -12,7 +12,7 @@
 
     You should have received a copy of the GNU General Public License
     along with PHP-ArkData.  If not, see <http://www.gnu.org/licenses/>.
-    
+
 **/
 
 use xPaw\SourceQuery\SourceQuery;
@@ -47,7 +47,7 @@ class Arkdata
 
         $enableSSH = false;
         if (count($options) > 0) {
-            $this->installLocation = $options['installLocation'];
+            $this->installLocation = $options['installLocation']."/ShooterGame/Saved/SavedArks";
             if (isset($options['enableSSH'])) {
                 $enableSSH = $options['enableSSH'];
             }
@@ -468,7 +468,13 @@ class Player
         $this->Id = $this->GetId($data)[1];
         $this->SteamId = $this->GetSteamId($data);
         $this->SteamName = utf8_encode(GetString($data, 'PlayerName'));
-        $this->CharacterName = GetString($data, 'PlayerCharacterName');
+        if(empty(trim(GetString($data, 'PlayerCharacterName'))))
+        {
+            $this->CharacterName = "Survivor";
+        }
+        else {
+            $this->CharacterName = GetString($data, 'PlayerCharacterName');
+        }
         $this->TribeId = GetInt($data, 'TribeID')[1];
         if (strlen((string) $this->TribeId) < 2) {
             $this->TribeId = false;
